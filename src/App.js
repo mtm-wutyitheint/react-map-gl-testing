@@ -1,6 +1,6 @@
 import logo from "./logo.svg";
 import "./App.css";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import * as turf from "@turf/turf";
 import ReactMapGL, { Source, Layer, Marker, Popup } from "react-map-gl";
 
@@ -11,10 +11,20 @@ import {
   DrawLineStringMode,
   DrawPolygonMode,
   EditingMode,
+  RENDER_STATE,
 } from "react-map-gl-draw";
+import { NavigationControl } from "react-map-gl";
+import { GeolocateControl } from "react-map-gl";
+import Directions from "./data/direction";
+// import Directions from 'react-map-gl-directions'
+// import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
+
 // import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css';
 let lon = 96.1346011283,
   lat = 16.8246550347;
+
+let draglon = 96.1216511283,
+  draglat = 16.8297550347;
 
 //botahtaung
 
@@ -25,6 +35,7 @@ var circle = turf.circle(center, radius, options);
 
 var line = turf.lineString(...circle.geometry.coordinates);
 console.log(line);
+var directions = null;
 
 const MODES = [
   { id: "drawPolyline", text: "Draw Polyline", handler: DrawLineStringMode },
@@ -50,11 +61,13 @@ function App() {
   const [selectedPark, setSelectedPark] = useState(null);
   const [parkColor, setParkColor] = React.useState("#000000");
   const [showroute, setshowRoute] = useState(false);
+  const reactMap = useRef(null);
 
   const layer = {
     id: "route",
     type: "line",
     source: "route",
+    draggable: "true",
     layout: {
       "line-join": "round",
       "line-cap": "round",
@@ -62,7 +75,21 @@ function App() {
     paint: {
       "line-color": "#03AA46",
       "line-width": 6,
-      // "line-opacity": 0.8,
+      "line-opacity": 0.8,
+    },
+  };
+
+  const layer2 = {
+    id: "points",
+    type: "symbol",
+    source: "points",
+    layout: {
+      "icon-image": "custom-marker",
+      // get the title name from the source's "title" property
+      "text-field": ["get", "title"],
+      "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+      "text-offset": [0, 1.25],
+      "text-anchor": "top",
     },
   };
 
@@ -105,6 +132,33 @@ function App() {
     );
   };
 
+  async function onDirect () {
+    // const radiuses = radius.join(";");
+    // const map = this.reactMap.getMap();
+    const profile =  'mapbox/driving-traffic';
+    const token =
+      "pk.eyJ1IjoicmFmaWxvczU1NiIsImEiOiJja2hoaHFwZjcwZ3pyMnFwNmY3aHY2eDg4In0.Ai4rUxBMjwoNzHTIDqmuBA";
+    // Create the query
+    const query = await fetch(
+      `https://api.mapbox.com/directions/v5/${profile}/access_token=${token}`,
+      { method: "GET" }
+    );
+    const response = await query.json();
+    // Handle errors
+    if (response.code !== "Ok") {
+      alert(
+        `${response.code} - ${response.message}.\n\nFor more information: https://docs.mapbox.com/api/navigation/map-matching/#map-matching-api-errors`
+      );
+      return;
+    }
+    // Get the coordinates from the response
+    const coords = response.matchings[0].geometry;
+    console.log(coords);
+    addRoute(coords.coordinates);
+
+    getInstructions(response.matchings[0]);
+  };
+
   const onChange = (features) => {
     if (features.data.length > 0) {
       setCoordinates(features.data[0].geometry.coordinates);
@@ -134,6 +188,7 @@ function App() {
     const radius = coords.map(() => 25);
     console.log(newCoords, radius);
     getMatch(newCoords, radius, profile);
+    onDirect();
   }
 
   function getInstructions(data) {
@@ -159,8 +214,10 @@ function App() {
       geometry: {
         type: "LineString",
         coordinates: coords,
+        draggable: true,
       },
     };
+    console.log(route1.geometry.coordinates);
     setRoutes(route1);
     setshowRoute(true);
     setModeId(null);
@@ -174,8 +231,12 @@ function App() {
     const token =
       "pk.eyJ1IjoicmFmaWxvczU1NiIsImEiOiJja2hoaHFwZjcwZ3pyMnFwNmY3aHY2eDg4In0.Ai4rUxBMjwoNzHTIDqmuBA";
     // Create the query
+    // const query = await fetch(
+    //   `https://api.mapbox.com/matching/v5/mapbox/${profile}/${coordinates}?geometries=geojson&radiuses=${radiuses}&steps=true&access_token=${token}`,
+    //   { method: "GET" }
+    // );
     const query = await fetch(
-      `https://api.mapbox.com/matching/v5/mapbox/${profile}/${coordinates}?geometries=geojson&radiuses=${radiuses}&steps=true&access_token=${token}`,
+      `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${token}`,
       { method: "GET" }
     );
     const response = await query.json();
@@ -186,14 +247,56 @@ function App() {
       );
       return;
     }
+    console.log(response)
+    // const map = this.reactMap.getMap();
+    // response.addControl(
+    //   new MapboxDirections({
+    //     accessToken: token,
+    //   }),
+    //   "top-left"
+    // );
     // Get the coordinates from the response
-    const coords = response.matchings[0].geometry;
+    const coords = response.routes[0].geometry;
     console.log(coords);
     addRoute(coords.coordinates);
 
-    getInstructions(response.matchings[0]);
+    getInstructions(response.routes[0]);
     // Code from the next step will go here
   }
+  const [events, logEvents] = useState({});
+
+  const [marker, setMarker] = useState({
+    latitude: 16.8297550347,
+    longitude: 96.1216511283,
+  });
+
+  // const onMarkerDragEnd = (coord, index) => {
+  //   const { latLng } = coord;
+  //   const lat = latLng.lat();
+  //   const lng = latLng.lng();
+
+  //   this.setState((prevState) => {
+  //     const markers = [...this.state.markers];
+  //     markers[index] = { ...markers[index], position: { lat, lng } };
+  //     return { markers };
+  //   });
+  // };
+
+  const onMarkerDragStart = useCallback((event) => {
+    logEvents((_events) => ({ ..._events, onDragStart: event.lngLat }));
+  }, []);
+
+  const onMarkerDrag = useCallback((event) => {
+    logEvents((_events) => ({ ..._events, onDrag: event.lngLat }));
+  }, []);
+
+  const onMarkerDragEnd = useCallback((event) => {
+    logEvents((_events) => ({ ..._events, onDragEnd: event.lngLat }));
+    setMarker({
+      longitude: event.lngLat[0],
+      latitude: event.lngLat[1],
+    });
+  }, []);
 
   return (
     <ReactMapGL
@@ -206,8 +309,16 @@ function App() {
         setViewport(viewport);
       }}
     >
+      {/* <directions mapRef={this.mapRef} mapboxApiAccessToken="pk.eyJ1IjoicmFmaWxvczU1NiIsImEiOiJja2hoaHFwZjcwZ3pyMnFwNmY3aHY2eDg4In0.Ai4rUxBMjwoNzHTIDqmuBA" /> */}
       {/* <Layer {...parkLayer} paint={{'fill-color': parkColor}} />
        */}
+      <Editor
+        // to make the lines/vertices easier to interact with
+        clickRadius={12}
+        mode={new DrawLineStringMode()}
+        onUpdate={onUpdate}
+        onChange={onChange}
+      />
       <Editor
         // to make the lines/vertices easier to interact with
         clickRadius={12}
@@ -221,13 +332,38 @@ function App() {
       {_renderToolbar()}
 
       {showroute === true && (
-        <Source type="geojson" data={route1}>
-          <Layer {...layer} />
-        </Source>
+        <>
+          <Source type="geojson" data={route1}>
+            <Layer {...layer} />
+            {/* <Directions></Directions> */}
+          </Source>
+        </>
       )}
+      <Marker
+        // latitude={route1.geometry.coordinates[0][1]}
+        // longitude={route1.geometry.coordinates[0][0]}
+        longitude={marker.longitude}
+        latitude={marker.latitude}
+        offsetTop={-20}
+        offsetLeft={-10}
+        draggable
+        // onDragStart={onMarkerDragStart}
+        // onDrag={onMarkerDrag}
+        // onDragEnd={onMarkerDragEnd}
+      >
+        <button className="marker-btn">
+          <img src="/location.svg" alt="Skate Park Icon" />
+        </button>
+      </Marker>
+      {/* <Marker latitude={lat} longitude={lon} draggable="true">
+        <button className="marker-btn">
+          <img src="/location.svg" alt="Skate Park Icon" />
+        </button>
+      </Marker> */}
 
       {parkDate.features.map((park) => (
         <Marker
+          id="marker"
           key={park.properties.PARK_ID}
           latitude={park.geometry.coordinates[1]}
           longitude={park.geometry.coordinates[0]}
