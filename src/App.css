@@ -50,6 +50,25 @@
   border-radius: 50%;
   cursor: pointer;
 }
+
+.marker-start {
+  background-image: url('../src/data/car.svg');
+  background-size: cover;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.marker-end {
+  background-image: url('../src/data/locate.svg');
+  background-size: cover;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 .mapboxgl-popup {
   max-width: 200px;
 }

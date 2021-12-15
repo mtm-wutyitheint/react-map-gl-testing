@@ -34,3 +34,8 @@ code {
   background-color: #fff;
   overflow-y: scroll;
 }
+
+.mapboxgl-route {
+  background-color : green;
+  color: green;
+}
