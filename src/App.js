@@ -2,7 +2,6 @@ import React from "react";
 import "./App.css";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import MapboxDirections from "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions";
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
 import * as parkDate from "./data/skateboard-parks.json";
 import * as routeData from "./data/map-routes.json";
@@ -167,82 +166,6 @@ class App extends React.Component {
         });
       });
     }
-  }
-
-  async getMatch(coordinates, radius, profile) {
-    // Separate the radiuses with semicolons
-    const radiuses = radius.join(";");
-    const token =
-      "pk.eyJ1IjoicmFmaWxvczU1NiIsImEiOiJja2hoaHFwZjcwZ3pyMnFwNmY3aHY2eDg4In0.Ai4rUxBMjwoNzHTIDqmuBA";
-    // Create the query
-    // const query = await fetch(
-    //   `https://api.mapbox.com/matching/v5/mapbox/${profile}/${coordinates}?geometries=geojson&radiuses=${radiuses}&steps=true&access_token=${token}`,
-    //   { method: "GET" }
-    // );
-    const query = await fetch(
-      `https://api.mapbox.com/directions/v5/mapbox/${profile}/${coordinates}?alternatives=true&geometries=geojson&steps=true&access_token=${token}`,
-      { method: "GET" }
-    );
-    console.log(query);
-    // query.then(data => console.log(data))
-    const response = await query.json();
-    // Handle errors
-    if (response.code !== "Ok") {
-      alert(
-        `${response.code} - ${response.message}.\n\nFor more information: https://docs.mapbox.com/api/navigation/map-matching/#map-matching-api-errors`
-      );
-      return;
-    }
-    console.log(response);
-    // const map = this.reactMap.getMap();
-    // response.addControl(
-    //   new MapboxDirections({
-    //     accessToken: token,
-    //   }),
-    //   "top-left"
-    // );
-    // Get the coordinates from the response
-    const coords = response.routes[0].geometry;
-    console.log(coords);
-    this.addRoute(coords.coordinates);
-
-    // getInstructions(response.routes[0]);
-    // Code from the next step will go here
-  }
-
-  updateRoute(coordinates) {
-    // Set the profile
-    const profile = "driving";
-    // Get the coordinates that were drawn on the map
-    const data = coordinates;
-    console.log(data);
-    const lastFeature = data.length - 1;
-    const coords = data;
-    // Format the coordinates
-    const newCoords = coords.join(";");
-    // Set the radius for each coordinate pair to 25 meters
-    const radius = coords.map(() => 25);
-    console.log(newCoords, radius);
-    this.getMatch(newCoords, radius, profile);
-    // onDirect();
-  }
-
-  addRoute(coords) {
-    const route1 = {
-      type: "Feature",
-      properties: {},
-      geometry: {
-        type: "LineString",
-        coordinates: coords,
-        draggable: true,
-      },
-    };
-    console.log(route1.geometry.coordinates);
-    // setRoutes(route1);
-    this.setState({ coordinates: coords });
-    // setshowRoute(true);
-    // setModeId(null);
-    // setModeHandler(null);
   }
 
   render() {
