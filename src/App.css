@@ -69,6 +69,15 @@
   cursor: pointer;
 }
 
+.current {
+  background-image: url('../src/data/current.svg');
+  background-size: cover;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 .mapboxgl-popup {
   max-width: 200px;
 }
