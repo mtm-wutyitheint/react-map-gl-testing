@@ -42,23 +42,23 @@ class App extends React.Component {
       zoom: 14,
     });
 
-    for (const feature of parkDate.features) {
-      // create a HTML element for each feature
-      const el = document.createElement("div");
+    // for (const feature of parkDate.features) {
+    //   // create a HTML element for each feature
+    //   const el = document.createElement("div");
 
-      el.className = "marker";
+    //   el.className = "marker";
 
-      // make a marker for each feature and add it to the map
-      new mapboxgl.Marker(el)
-        .setLngLat(feature.geometry.coordinates)
-        .setPopup(
-          new mapboxgl.Popup({ offset: 25 }) // add popups
-            .setHTML(
-              `<h3>${feature.properties.NAME}</h3><p>${feature.properties.ADDRESS}</p>`
-            )
-        )
-        .addTo(map);
-    }
+    //   // make a marker for each feature and add it to the map
+    //   new mapboxgl.Marker(el)
+    //     .setLngLat(feature.geometry.coordinates)
+    //     .setPopup(
+    //       new mapboxgl.Popup({ offset: 25 }) // add popups
+    //         .setHTML(
+    //           `<h3>${feature.properties.NAME}</h3><p>${feature.properties.ADDRESS}</p>`
+    //         )
+    //     )
+    //     .addTo(map);
+    // }
 
     let length = 5;
     // console.log(this.state.userlon, this.state.userlat);
