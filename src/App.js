@@ -331,6 +331,11 @@ class App extends React.Component {
         }
       );
     }
+    if ("geolocation" in navigator) { 
+      navigator.geolocation.getCurrentPosition(position => { 
+          console.log(position.coords.latitude, position.coords.longitude); 
+      }); 
+  } else { /* geolocation IS NOT available, handle it */ }
   }
 
   addCoordinate() {
