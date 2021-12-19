@@ -1,6 +1,9 @@
 {
   "name": "react-map-testapp",
   "version": "0.1.0",
+  "engines": {
+    "node": "14.17.6"
+  },
   "private": true,
   "dependencies": {
     "@mapbox/mapbox-gl-directions": "^4.1.0",
@@ -48,5 +51,10 @@
   },
   "resolutions": {
     "ajv": "6.8.1"
-  }
+  },
+  "buildpacks": [
+    {
+      "url": "mars/create-react-app"
+    }
+  ]
 }
