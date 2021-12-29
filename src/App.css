@@ -60,6 +60,15 @@
   cursor: pointer;
 }
 
+.marker-moving {
+  background-image: url('../src/data/car1.svg');
+  background-size: cover;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
 .marker-end {
   background-image: url('../src/data/locate.svg');
   background-size: cover;
