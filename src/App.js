@@ -5,7 +5,6 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-directions/dist/mapbox-gl-directions.css";
 import { db } from "./Firebase";
 import { collection, onSnapshot } from "firebase/firestore";
-import "firebase/firestore";
 
 mapboxgl.accessToken = process.env.REACT_APP_MAPBOX_KEY;
 
