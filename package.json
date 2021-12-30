@@ -17,6 +17,7 @@
     "@testing-library/user-event": "^12.1.10",
     "@turf/turf": "^6.5.0",
     "eon-map": "^1.2.2",
+    "firebase": "^9.6.1",
     "firebase-functions": "^3.16.0",
     "gl-matrix": "^3.4.3",
     "google-map-react": "^2.1.10",
